@@ -1,0 +1,1 @@
+This is the solution for part 0.4 -0.6 exercise
