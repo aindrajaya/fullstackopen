@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Header from './components/Header';
-import Content from './components/Content';
 import Total from './components/Total';
 
 const App = () => {
@@ -12,13 +11,45 @@ const App = () => {
   const exercise2 = 7
   const part3 = 'State of a component'
   const exercise3 = 14
+  
+  const Part1 = () => {
+    return(
+      <div>
+        <p>{part1} {exercise1}</p>
+      </div>
+    )
+  }
+
+  const Part2 = () => {
+    return(
+      <div>
+        <p>{part2} {exercise2}</p>
+      </div>
+    )
+  }
+
+  const Part3 = () => {
+    return(
+      <div>
+        <p>{part3} {exercise3}</p>
+      </div>
+    )
+  }
+
+  const Content = () => {
+    return(
+      <div>
+        <Part1 />
+        <Part2 />
+        <Part3 />
+      </div>
+    )
+  }
 
   return(
     <div>
       <Header course={course}/>
-      <Content part={part1} exercise={exercise1}/>
-      <Content part={part2} exercise={exercise2}/>
-      <Content part={part3} exercise={exercise3}/>
+      <Content />
       <Total exerciseTot={exercise1+exercise2+exercise3}/>
     </div>
   )
