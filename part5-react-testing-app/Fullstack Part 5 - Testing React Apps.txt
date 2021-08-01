@@ -1,0 +1,356 @@
+TESTING REACT APPS
+(https://fullstackopen.com/en/part5)
+----------------------------------------------------------------
+In this part we return to the frontend, first looking at a different possibilities for testing the React code. We will also implement token based authentication which will enable users to log in to out application.
+-----------------------------
+A. Login In frontend
+In the last two parts, we have mainly concentrated on the backedn, and the frontend does not yet support the user management we implemented to the backend in Part 4. 
+At the momoent the frontend shows existing notes, and lets users can change the state of a note from important to not important and vice versa. New notes cannot be added anymore because of the changes made to the backend in part 4: the backend now expects that a token verifying a user's identity is sent with the new note.
+We'll now implement a part of the requierer user management functionality in the frontend. Let's begin with user login. Througout this part we will assume that new users will be added from the frontend.
+--
+#Handling Login
+A Login form has now been added to the top of the page. The form for adding new notes has also been moved to the bottom of the list of notes.
+[GAMBAR: https://fullstackopen.com/static/f735fe7db5ad5bbc1413d3ff617c6daa/5a190/1e.png]
+The code of the App component now lookst as follows:
+[const App = () => {
+  const [notes, setNotes] = useState([]);
+  const [newNotets, setNewNotes] = useState([])
+  const [showAll, setShowAll] = useState([])
+  const [errorMessage, setErrorMessage] = useState([])
+  const [username, setUsername] = useState([])
+  const [password, setPassword] = useState([])
+
+  useEffec(() => {
+    noteService
+      .getAll().then(initialNotes => {
+        setNotes(initialNotes)
+      })
+  }, [])
+
+  //...
+
+  const handleLogin = (e) => {
+    e.preventDefault()
+    console.log('loging in with', username, password)
+  }
+
+  return(
+    <div>
+      <h1>Notes</h1>
+      <Notification message={errorMessage}/>
+
+      <form onSubmot={handleLogin}>
+        <div>
+          <input
+            type="text"
+            value={username}
+            name="username"
+            onChange={({target}) => setUsername(target.value)}
+          />
+        </div>
+        <div>
+          <input
+            type="password"
+            value={password}
+            name="password"
+            onChange={({target}) => setPassword(target.value)}
+          />
+        </div>
+        <button type="submit">login</button>
+      </form>
+  
+      // ...  
+    </div>
+  )
+}]
+Current application code can be found on Github, branch part5-1. If you clone the repo don't forget to run npm install before attempting to run the frontend. 
+The frontend will not display any note if it's not connected to the backedn. You can start the backend with npm run dev in its folder from Part 4. This will run the backend on port 3001. While that is active, in a separate terminal window you can start the frontend with npm start, and now you can see the notes that are saved in your MongoDB database from Part 4. Keep this in mind from now on.
+The login form is handled the same way we handled forms in part 2. The app state has fields username and passwrod to store the data from the form. The form fields have event handlers, which syncrhonize changes in the field to the state of the App component. The event handlers are simple: And object is given to them as paramter, and they destructure the field target from the object and save its value to the state. 
+[ ({target}) => setUsername(target.value) ]
+The method handleLogin, which is responsible for handling the data in the form, is yet to be implemented. Logging in is done, by sending an HTTP POST requres to server address api/login. Let's separate the code responsible for this requres to its own module, to file services/login.js. We'll use async/await instead of promises for the HTTP request:
+[import axios from 'axios'
+const baseUrl = '/api/login'
+
+const login = async credentials = {
+  const res = await axios.post(baseUrl, credentials)
+  return res.data
+}
+
+export default {login}]
+The method for handling the login can be implemented as follows:
+[import loginService from './services/login'
+
+const App = () => {
+  const[username, setUsername] = useState('')
+  const[password, setPassword] = useState('')
+  const[user, setUser]= useState(null)
+  
+  const handleLogin = async(e) => {
+    e.preventDefault()
+  
+    try{
+      const user = await loginService.login({
+        username, password,
+      })
+      setUser(user)
+      setUsername('')
+      setPassword('')
+    } catch(exception){
+      setErrorMessage('Wrong Credentials')
+      setTimeout(() => {
+        setErrorMessage(nul;)
+      }, 5000)
+    }
+  }
+}]
+If the login is successfull, the form fields are emptied and the server response (including a tokena nd the user details) is saved to the user field of the application's state. If the loign fails, or running the function loginService.login results in an error, the user is notified. The user is not notified about a successful login in any way. Let's modify the application to show the login form only if the user is not logged-in so when user === null. The form for adding new notes is shown only if the user is logged-in, so user contains the user details. Let's add two helper functions to the App componetn for generating the forms:
+[const App = () => {
+  //...
+  
+  const loginForm = () => (
+    <form onSubmit={handleLogin}>
+      <div>
+        username
+        <input 
+          type="text"
+          value={username}
+          name="Username"
+          onChange={({target}) => setUsername(target.value)}
+        />
+      </div>
+      <div>
+        password
+        <input 
+          type="passwrod"
+          value={password}
+          name="Password"
+          onChange={({target}) => setPassword(target.value)}
+        />
+      </div>
+      <button type="submit">login</button>
+    </form>
+  )
+
+  const noteForm = () => (
+    <form onSubmit={addNote}>
+      <input
+        value={newNote}
+        onChange={handleNoteChange}
+      />
+      <button type="submit">save<button>
+    </form>
+  )
+
+  return(
+    //...
+  )
+}]
+and conditionally render them:
+[const App = () => {
+  //...
+  
+  const loginForm = () => (
+    // ...
+  )
+
+  const noteForm = () => (
+    // ...
+  )
+
+  return(
+    <div>
+      <h1>Notes</h1>
+      <Notification message={errorMessage}/>
+
+      {user === null && loginForm()}
+      {user !== null && noteForm()}
+
+      <div>
+        <button onClick={() => setShowAll(!showAll)}>
+          show (showAll ? 'important' : 'all')
+        </button>
+      </div>
+      <ul>
+        {notesToShow.map((note, i) => 
+          <Note 
+            key={i}
+            note={note}
+ 	    toggleImportance={() => toggleImportanceOf(note.id)}
+          />
+        )}
+      </ul>
+
+      <Footer />
+    </div>
+  )
+}]
+A sligtly odd looking, but commonly user React trick is used to render the forms conditionally:
+[ {user === null && loginForm()} ]
+If the first statement evaluates to false, or is falsy, the second statement (generating the form) is not executed at all. We can make this even more straigthforward by using the conditional operator:
+[return(
+  <div>
+    <h1>Notes</h1>
+    <Notification message={errorMessage}/>
+   
+    {user === null ? 
+      loginForm() :
+      noteForm()
+    }
+
+    <h1>Notes</h2>
+  
+    // ...
+  </div>
+)]
+If user === null is truthy, loginForm() is executed. If not, noteForm() is. Let's do one more modification. If the user is logged-in, their name is shown on the screen.
+[return(
+  <div>
+    <h1>Notes</h1>
+    <Notification message={errorMessage} />
+
+    {user === null ? 
+      loginForm() :
+      <div>
+        <p>{user.name} logged-in</p>
+        {noteForm()}
+    }
+
+    <h2>Notes</h2>
+    // ...
+  </div>
+)]
+The solution isn't perfect, but we'll leave it for now.
+Our main component App is at the moment way too large. The changes we did now are a clear sign that the forms should be refactored into their own components. However, we will leave that for an optional exercise. Current application code can be found on Github, branch part5-2.
+--
+#Creating new Notes
+The token returned with a successful login is saved to the application's state- the user's field token:
+[const handleLogin = async(event) => {
+  event.preventDefault()
+  try{
+    const user = await loginService.login({
+      username, password,
+    })
+
+    setUser(user)
+    setUsername('')
+    setPassword('')
+  } catch (exception){
+    // ...
+  }
+}]
+Let's fix creating new notes so if works with the backend. This means adding the token of the logged-in user to the Authorization header of the HTTP request. The noteService module changes like so:
+[import axios from 'axios'
+baseUrl = '/api/notes'
+ 
+let token = null
+ 
+const setToken = newToken => {
+  token = `bearer ${newToken}`
+}
+
+const getAll = () => {
+  const config = {
+    headers: {Authorization: token},
+  }
+
+  const res = await axios.post(baseUrl, newObject, config)
+  return res.data
+}
+
+const update = (id, newObjec) => {
+  const req = axios.put(`${baseUrl}/${id}`, newObject)
+  return req.then(res => res.data)
+}
+
+export default {getAll, create, update, setToken}
+]
+The noteService module contains a private variable token. Its value can be changed with a function setToken, which is exported by the module. create, now with async/await syntax, sets the token to the Authorization header. The header is given to axios as the third parameter of the post method. The event handler responsible for login must be changed to call the method noteService.setToken(user.token) with a successful login:
+[const handleLogin = async(e) => {
+  e.preventDefault()
+  try{
+    const user = await loginService.login({
+      username, password,
+    })
+
+    noteService.setToken(user.token)
+    setUser(user)
+    setUsername('')
+    setPassword('')
+  } catch (exception){
+    // ... 
+  }
+}]
+And now adding new notes works again!
+--
+#Saving the Token to the browser's local storage
+Our application has a flaw: when the page is rerendered, information of the user's login disappears. This also slows down development. For example when we test creating new notes, we have to login again every single time. This problem is easily solved by saving the login details to local storage. Local Storage is a key-value database in the browser. It is very easy to use. A value corresponding to a certain key is saved to the database with method setIem. For example
+[window.localStorage.setItem('name', 'juha tauriainen')]
+Saves the string given as the second parameter as the value of key name. The value of a key can be found with method getItem:
+[window.localStorage.getItem('name')]
+and removeItem removes a key.
+Values in the local storage are persisted even when the pages is rerendered. The storage is origin-specific so each web application has its own storage. Let's extend our application so that it saves the details of a logged-in user to the local storage. Values saved to the local storage are DOMstrings, so we cannot save a Javascript object as is. The object has to be parsed to JSON firs, with the methods JSON.stringify. Corresponding, when a JSON object is read from the local storage, it has to be parsed back to JavaScript with JSON.parse. Changes to the login methods are as follows:
+[const handleLogin = (e) => {
+  e.preventDefault()
+  try{
+    const user = await loginService.login({
+      username, password,
+    })
+
+    window.localStorage.setItem(
+      'loggedNoteappUser', JSON.stringify(user)
+    )
+    noteService.setToken(user.token)
+    setUser(user)
+    setUsername('')
+    setPassword('')
+  } catch (exception) {
+    // ...
+  }
+}]
+The details of a logged-in user are now saved to the local storage, and they can be viewed on the console:
+[GAMBAR: https://fullstackopen.com/static/a69b93f2f1d403c968a3118a612a559a/5a190/3e.png]
+You can also inspect the local storage use the developer tools. On Chrome, go to the Application tab and select Local Storage (more details here). On Firefox go to the Storage tab and select Local Storage (details here). We still have to modify our application so that we enter the page, the application checks if user details of a logged-in user can already be found on the local storage. If they can, the details are saved to the state of the application and to noteService. The right way to do this is with an effect hook: a mechanism we first encountered in part 2, and used to fetch notes from the server. We can have multiple effect hooks, so let's create a second one to handle the first loading of the page:
+[const App = () => {
+  const [notes, setNotes] = useState([])
+  const [newNote, setNewnote] = useState('')
+  const [showAll, setShowAll] = useState(true)
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    noteService
+      .getAll().then(initialNotes => {
+        setNotes(initialNotes)
+      })
+  }, [])
+
+  useEFfect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteappUser')
+    if(loggedUserJSON){
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      noteService.setToken(user.token)
+    }
+  }, [])
+  
+  // ...
+}]
+The empty array as the parameter of the effect ensures that the effect is executed only when the component is rendered for the first time. Now a user stays logged-in in the applications forever. We should probably add a logout functionality which removes the login details from the local storage. We will however leave it for an exercise. It's possiblle to log out a user using the console, and that is enough for now. You can log out with the command:
+[ window.localStorage.removeItem('loggedNoteappUser') ]
+or with the command which empties localstorage completely:
+[ window.localStorage.clear() ]
+Current application code can be found on Github, branch part5-3.
+==============================================
+[EXERCISEEEEEEE 5.1 - 5.4]
+==============================================
+--
+#A note on using Local Storage
+At then end of the last part we mentioned that the challenge of the token based authenticaion is how to cope with the situation when the API access of the token holder to the API needs to be revoked. There are two solutions to the problem. The first one is to lmit the validity period of a token. This forces the user to relogin to the app once the token has expired. The other approach is to save the validity information of each token to the backend database. This solution often called a server side session.
+No matter how the validity of tokens is checked and ensured, saving token in the local storage might contain a security riks if the application has a security vulnerability that allows Cross Site Scripting (XSS) attacks. A XSS attack is possible if the application  would allow user to inject arbitrary JavaScript code e.g., using a form that app would then exectue. When usein React is a sensible manner is should not be possible since React sanitizes all the text that it renders, meaing that it is not executing the rendered content as Javascript.
+If on wants to play safe, the best option is to not store a token to the local storage. This might be an option in situations where leaking a token might have tragic consequences. It has been suggested that the identity of a signed in user should be saved as httpOnlyCookies, so that Javascript code could not have eny access the tokne. The drawback of this solution is that it would make implementing SPA-applications a bit more complex. One would need at leas to implement a separate page for loggin in. However it is good to notice that event the use of a httiOnly cookies does not guarantee anything. It has even been suggested that httpOnly cookies are not any fsafer than the use of local storage. So no matter the used solution the most important thing is to minimize the risk of XSS attacks altogether.
+
+B. props.children and proptypes
+C. Testing React Apps
+D. End to End Testing
