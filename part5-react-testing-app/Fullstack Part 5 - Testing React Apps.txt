@@ -351,6 +351,8 @@ At then end of the last part we mentioned that the challenge of the token based 
 No matter how the validity of tokens is checked and ensured, saving token in the local storage might contain a security riks if the application has a security vulnerability that allows Cross Site Scripting (XSS) attacks. A XSS attack is possible if the application  would allow user to inject arbitrary JavaScript code e.g., using a form that app would then exectue. When usein React is a sensible manner is should not be possible since React sanitizes all the text that it renders, meaing that it is not executing the rendered content as Javascript.
 If on wants to play safe, the best option is to not store a token to the local storage. This might be an option in situations where leaking a token might have tragic consequences. It has been suggested that the identity of a signed in user should be saved as httpOnlyCookies, so that Javascript code could not have eny access the tokne. The drawback of this solution is that it would make implementing SPA-applications a bit more complex. One would need at leas to implement a separate page for loggin in. However it is good to notice that event the use of a httiOnly cookies does not guarantee anything. It has even been suggested that httpOnly cookies are not any fsafer than the use of local storage. So no matter the used solution the most important thing is to minimize the risk of XSS attacks altogether.
 
+https://fullstackopen.com/en/part5/login_in_frontend
+
 B. props.children and proptypes
 C. Testing React Apps
 D. End to End Testing
