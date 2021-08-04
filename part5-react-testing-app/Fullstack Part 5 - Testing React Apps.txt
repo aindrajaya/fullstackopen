@@ -354,5 +354,103 @@ If on wants to play safe, the best option is to not store a token to the local s
 https://fullstackopen.com/en/part5/login_in_frontend
 
 B. props.children and proptypes
+#Displaying the Login form only when Appropriate\
+Let's modify the application so that the login form is not displayed by default:
+[GAMBAR: https://fullstackopen.com/static/da248f79ad2c71a9e834c174065dc694/5a190/10e.png]
+The login form appearswhen the user presses the login button:
+[GAMBAR: https://fullstackopen.com/static/bb9909156016418fc4cc9a1b60424f13/5a190/11e.png]
+The user can close the login form by clicking the cancel button.
+Let's start by extracting the login form into its own component:
+[import React from 'react'
+const LoginForm = ({
+    handleSubmit,
+    handleUsernameChange,
+    handlePasswordChange,
+    username,
+    password
+  }) => {
+  return(
+    <div>
+      <h2>Login</h2>      
+      <form onSubmit={handleSubmit}>
+        <div>
+          username
+          <input 
+            value={username}
+            onChange={handleUsernameChange}
+          />
+        </div>
+        <div>
+          password
+          <input 
+            type="password"
+            value={password}
+            onChange={handlePasswordChange}
+          />
+        </div>
+          <button type="submit">login</button>
+      </form>
+    </div>
+  )
+}]
+The state and all the function related to it are define outside of the component and are passed ot the component as props. Notice that the props are assigned to variables through destructuring, which means that instead of writing:
+[const LoginForm = (props) => {
+  return(
+    <h2>Login</h2>
+    <form onSubmit={props.handleSubmit}>
+      <div>
+        username
+        <input 
+          value={props.username}
+          onChange={props.handleChange}
+          name="username"
+        />
+      </div>
+      //...
+      <button type="submit">login</button>
+    </form>
+  )
+}]
+Where the properties of the props object are accessed through e.g. props.handleSubmit, the properties are assigned directly to their own variables. One fast way of implementing the functionality is to change the loginForm function of the APp component like so:
+[const App = () => {
+  const [loginVisible, setLoginVisible] = useState(false)
+  //...
+  const LoginForm = () => {
+    const hideWhenVisible = {display: loginVisible ? 'none' : ''}
+    const showWhenVisible = {display: loginVisible ? '' : 'none'}
+
+    return(
+      <div>
+        <div style={hideWhenVisible}>
+          <button onClick={() => setLoginVisible(true)}>Log in</button>
+        </div>
+        <div style={showWhenVisible}>
+          <LoginForm 
+            username={username}
+            password={password}
+            handleUsernameChange={({target}) => setUsername(target.value)}
+            handlePasswordChange={({target}) => setPassword(target.value)}
+            handleSubmit={handleLogin}
+          />
+          <button onClick={() => setLoginVisible(false)}>cancels</button>
+        </div>
+      </div>
+    )
+  }
+  //...
+}]
+The App components state now contains the boolean loginVisible, that defines if the login form should be shown to the user or not. The value of loginVisible is toggled with two buttons. Both buttons have their event handlers defined directly in the component.
+[<button onClick={() => setLoginVisible(true)}>Log In</button>
+<button onClick={() => setLoginVisible(false)}>Cancel</button>]
+The vibility of the component is defined by giving the component an inline style rule, where the value of the displayh property is none if we do not want the component to be displayed:
+[const hideWhenVisible = {display: loginVisible ? 'none' : '' 
+const showWhenVisible = {display: loginVisible ? '' : 'none'}]
+We are once again using the "question mark" ternary operator. If loginVisible is true, then the CSS rule of the component will be:
+[display : 'none']
+If login Visible is false, then display will not receive any value related to the visibility of the component.
+
+
+
+
 C. Testing React Apps
 D. End to End Testing
