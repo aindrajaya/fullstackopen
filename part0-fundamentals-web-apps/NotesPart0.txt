@@ -111,6 +111,7 @@ Don't code with nano, Notepad or Gedit. NetBeans isn't very good for web develop
 If you find a typo in the material, or something has been expressed unclearly, or is simply bad grammar, do a pull request to the course material in the repository. For example, the markdown source code of this page can be found in the repository at https://github.com/fullstack-hy2020/fullstack-hy2020.github.io/edit/source/src/content/0/en/part0a.md
 At the bottom of each part of the material is a link to propose changes to material. You can edit the source code of the page by clicking on the link.	
 
+
 =======================================================================
 B. FUNDAMENTALS OF WEB APPS
 Before we start programming, we will go through some principles of web development by examining an example application at https://studies.cs.helsinki.fi/exampleapp. The application exists only to demonstrate some basic concepts of the course, and are by no means examples of how web applications should be made. On the contrary, they demonstrate some old techniques of web development, which can even be seen as bad practice nowadays. Coding in the recommended style begins in part 1. Open the example application on your browser. Sometimes this takes a while. The 1st rule of web development: Always keep the Developer Console open on your web browser. On macOS, open the console by pressing F12or option-cmd-isimultaneously. On Windows or Linux, open the console by pressing F12or ctrl-shift-isimultaneously. The console can also be opened via the context menu. Remember to always keep the Developer Console open when developing web applications. The console looks like this:
@@ -251,12 +252,4 @@ To request to the server is sent on the last line, but the code to handle the re
 [xhttp.onreadystatechange = function () {]
 ON this line, and event handler for event onreadystatechange is
 
-
-
-
-
-
-
-
-
-
+## Need to continue the Another Section
